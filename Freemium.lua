@@ -1,30 +1,9 @@
 -- ==========================================
--- BlueHavenHub by Kntzy | v5.32 (Orion)
+-- BlueHavenHub by Kntzy | v5.32 (x2zu UI)
 -- ==========================================
 
--- Coba beberapa source URL Orion Library
-local OrionLib
-local success, err = pcall(function()
-    OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-end)
-
-if not success or not OrionLib then
-    -- Fallback ke URL alternatif
-    local success2, err2 = pcall(function()
-        OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/b3mb4m/Orion/main/source')))()
-    end)
-    
-    if not success2 or not OrionLib then
-        -- Fallback ke URL cadangan
-        local success3, err3 = pcall(function()
-            OrionLib = loadstring(game:HttpGet(('https://pastebin.com/raw/5VbB4XrH')))()
-        end)
-        
-        if not success3 or not OrionLib then
-            error("Gagal memuat Orion Library. Coba gunakan library lain.")
-        end
-    end
-end
+-- Load UI Library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zu/OPEN-SOURCE-UI-ROBLOX/refs/heads/main/X2ZU%20UI%20ROBLOX%20OPEN%20SOURCE/DummyUi-leak-by-x2zu/fetching-main/Tools/Framework.luau"))()
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -50,6 +29,22 @@ local MACHINE_POS = Vector3.new(21, 16, -5)
 -- DISCORD LINK
 -- ==========================================
 local DISCORD_LINK = "https://discord.gg/Vzbs245EC"
+
+-- Create Main Window
+local Window = Library:Window({
+    Title = "BlueHavenHub v5.32",
+    Desc = "by Kntzy",
+    Icon = 105059922903197,
+    Theme = "Dark",
+    Config = {
+        Keybind = Enum.KeyCode.RightShift,
+        Size = UDim2.new(0, 500, 0, 450)
+    },
+    CloseUIButton = {
+        Enabled = true,
+        Text = "BHH"
+    }
+})
 
 -- ==========================================
 -- FUNGSI UNTUK LOST CHILD (1-4)
@@ -341,28 +336,11 @@ local function refreshTreeESP()
 end
 
 -- ==========================================
--- ORION UI SETUP
--- ==========================================
-local Window = OrionLib:MakeWindow({
-    Name = "BlueHavenHub v5.32",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "BlueHaven_Config",
-    IntroEnabled = true,
-    IntroText = "BlueHavenHub",
-    IntroIcon = "rbxassetid://4483345998",
-})
-
--- ==========================================
 -- MAIN TAB
 -- ==========================================
-local MainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local MainTab = Window:Tab({Title = "Main", Icon = "star"})
 
-MainTab:AddParagraph("Auto Farm", "Otomatisasi Makanan & Grind")
+MainTab:Section({Title = "Auto Farm"})
 
 local autoEatEnabled = false
 local autoCookEnabled = false
@@ -370,104 +348,96 @@ local autoEatFoods = {"Cooked Steak", "Cooked Morsel", "Berry", "Carrot", "Apple
 local rawFoodsToCook = {"Morsel", "Steak"}
 local maxGrindRadius = 1000 
 
-MainTab:AddToggle({
-    Name = "Auto Eat",
-    Default = false,
-    Callback = function(state) autoEatEnabled = state end,
+MainTab:Toggle({
+    Title = "Auto Eat",
+    Desc = "Makan otomatis saat HP < 70%",
+    Value = false,
+    Callback = function(state) autoEatEnabled = state end
 })
 
-MainTab:AddToggle({
-    Name = "Auto Cook",
-    Default = false,
-    Callback = function(state) autoCookEnabled = state end,
+MainTab:Toggle({
+    Title = "Auto Cook",
+    Desc = "Masak makanan mentah di Campfire",
+    Value = false,
+    Callback = function(state) autoCookEnabled = state end
 })
 
-MainTab:AddDivider()
+MainTab:Section({Title = "Grind & Fuel"})
 
-MainTab:AddParagraph("Grind & Fuel", "")
-
-MainTab:AddSlider({
-    Name = "Max Grab Radius",
+MainTab:Slider({
+    Title = "Max Grab Radius",
     Min = 0,
     Max = 2000,
-    Default = 1000,
-    Increment = 10,
-    Callback = function(value) maxGrindRadius = value end,
+    Rounding = 10,
+    Value = 1000,
+    Callback = function(value) maxGrindRadius = value end
 })
 
 local autoGrindItems = {}
-MainTab:AddDropdown({
-    Name = "Auto Grind",
-    Options = {"UFO Junk", "UFO Component", "Old Car Engine", "Broken Fan", "Old Microwave", "Bolt", "Log", "Cultist Gem", "Sheet Metal", "Old Radio", "Tyre", "Washing Machine", "Gem of the Forest Fragment", "Broken Microwave"},
-    Default = "",
+MainTab:Dropdown({
+    Title = "Auto Grind",
+    List = {"UFO Junk", "UFO Component", "Old Car Engine", "Broken Fan", "Old Microwave", "Bolt", "Log", "Cultist Gem", "Sheet Metal", "Old Radio", "Tyre", "Washing Machine", "Gem of the Forest Fragment", "Broken Microwave"},
+    Value = "Log",
     Callback = function(selected)
         autoGrindItems = {}
         if selected then autoGrindItems[selected] = true end
-    end,
+    end
 })
 
 local autoFuelItems = {}
-MainTab:AddDropdown({
-    Name = "Auto Fuel",
-    Options = {"Log", "Coal", "Fuel Canister", "Oil Barrel", "Biofuel"},
-    Default = "",
+MainTab:Dropdown({
+    Title = "Auto Fuel",
+    List = {"Log", "Coal", "Fuel Canister", "Oil Barrel", "Biofuel"},
+    Value = "Log",
     Callback = function(selected)
         autoFuelItems = {}
         if selected then autoFuelItems[selected] = true end
-    end,
+    end
 })
 
 -- ==========================================
 -- TELEPORTS TAB
 -- ==========================================
-local TeleportsTab = Window:MakeTab({
-    Name = "Teleports",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local TeleportsTab = Window:Tab({Title = "Teleports", Icon = "tag"})
 
-TeleportsTab:AddParagraph("Locations", "Teleportasi Karakter")
+TeleportsTab:Section({Title = "Locations"})
 
-TeleportsTab:AddButton({
-    Name = "TP to Campfire",
-    Callback = function() teleportPlayerTo(CAMPFIRE_POS) end,
+TeleportsTab:Button({
+    Title = "TP to Campfire",
+    Desc = "Kembali ke area perapian",
+    Callback = function() teleportPlayerTo(CAMPFIRE_POS) end
 })
 
 for i = 1, 4 do
-    TeleportsTab:AddButton({
-        Name = "TP to Lost Child " .. i,
+    TeleportsTab:Button({
+        Title = "TP to Lost Child " .. i,
+        Desc = "Teleport ke Jail Cellar " .. i,
         Callback = function()
             local part = getLostChildPart(i)
             if part then
                 teleportPlayerTo(part.Position)
-                OrionLib:MakeNotification({
-                    Name = "Teleport",
-                    Content = "Lost Child "..i.." Berhasil!",
-                    Image = "rbxassetid://4483345998",
-                    Time = 2,
+                Window:Notify({
+                    Title = "Teleport",
+                    Desc = "Lost Child "..i.." Berhasil!",
+                    Time = 2
                 })
             else
-                OrionLib:MakeNotification({
-                    Name = "Error",
-                    Content = "Lost Child "..i.." tidak ditemukan!",
-                    Image = "rbxassetid://4483345998",
-                    Time = 2,
+                Window:Notify({
+                    Title = "Error",
+                    Desc = "Lost Child "..i.." tidak ditemukan!",
+                    Time = 2
                 })
             end
-        end,
+        end
     })
 end
 
 -- ==========================================
 -- AURA TAB (KILL AURA)
 -- ==========================================
-local CombatTab = Window:MakeTab({
-    Name = "Aura",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local CombatTab = Window:Tab({Title = "Aura", Icon = "tag"})
 
-CombatTab:AddParagraph("Combat", "Kill Aura (Damage Spoofing)")
+CombatTab:Section({Title = "Combat"})
 
 local killAuraEnabled = false
 local auraRadius = 350 
@@ -487,77 +457,73 @@ local function getBestSpoofTool()
     return nil, nil
 end
 
-CombatTab:AddToggle({
-    Name = "Kill Aura",
-    Default = false,
-    Callback = function(state) killAuraEnabled = state end,
+CombatTab:Toggle({
+    Title = "Kill Aura",
+    Desc = "Serang mobs di sekitar",
+    Value = false,
+    Callback = function(state) killAuraEnabled = state end
 })
 
-CombatTab:AddSlider({
-    Name = "Radius",
+CombatTab:Slider({
+    Title = "Radius",
     Min = 0,
     Max = 500,
-    Default = 350,
-    Increment = 10,
-    Callback = function(value) auraRadius = value end,
+    Rounding = 10,
+    Value = 350,
+    Callback = function(value) auraRadius = value end
 })
 
 -- ==========================================
 -- TREE AURA TAB
 -- ==========================================
-local TreeTab = Window:MakeTab({
-    Name = "Tree Aura",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local TreeTab = Window:Tab({Title = "Tree Aura", Icon = "tag"})
 
-TreeTab:AddParagraph("Tree Aura", "Nebang pohon di sekitar")
+TreeTab:Section({Title = "Tree Aura"})
 
 local treeAuraEnabled = false
 local treeAuraRadius = 80
 
-TreeTab:AddToggle({
-    Name = "Tree Aura",
-    Default = false,
+TreeTab:Toggle({
+    Title = "Tree Aura",
+    Desc = "Aktifkan / Nonaktifkan",
+    Value = false,
     Callback = function(state)
         treeAuraEnabled = state
         if state then
-            OrionLib:MakeNotification({
-                Name = "Tree Aura",
-                Content = "ON! Radius: " .. treeAuraRadius,
-                Image = "rbxassetid://4483345998",
-                Time = 2,
+            Window:Notify({
+                Title = "Tree Aura",
+                Desc = "ON! Radius: " .. treeAuraRadius,
+                Time = 2
             })
         else
-            OrionLib:MakeNotification({
-                Name = "Tree Aura",
-                Content = "OFF!",
-                Image = "rbxassetid://4483345998",
-                Time = 2,
+            Window:Notify({
+                Title = "Tree Aura",
+                Desc = "OFF!",
+                Time = 2
             })
         end
-    end,
+    end
 })
 
-TreeTab:AddSlider({
-    Name = "Radius",
+TreeTab:Slider({
+    Title = "Radius",
     Min = 0,
     Max = 200,
-    Default = 80,
-    Increment = 5,
-    Callback = function(value) treeAuraRadius = value end,
+    Rounding = 5,
+    Value = 80,
+    Callback = function(value) treeAuraRadius = value end
 })
 
-TreeTab:AddButton({
-    Name = "Test Chop All",
+TreeTab:Button({
+    Title = "Test Chop All",
+    Desc = "Tebang SEMUA pohon dalam radius (1x)",
     Callback = function()
         local trees = TreeUtility:GetTreesInRadius(treeAuraRadius)
         if #trees == 0 then
-            OrionLib:MakeNotification({
-                Name = "Info",
-                Content = "Tidak ada pohon dalam radius!",
-                Image = "rbxassetid://4483345998",
-                Time = 2,
+            Window:Notify({
+                Title = "Info",
+                Desc = "Tidak ada pohon dalam radius!",
+                Time = 2
             })
             return
         end
@@ -571,25 +537,20 @@ TreeTab:AddButton({
             task.wait(0.05)
         end
 
-        OrionLib:MakeNotification({
-            Name = "Chop All",
-            Content = "Menebang " .. chopped .. " pohon!",
-            Image = "rbxassetid://4483345998",
-            Time = 2,
+        Window:Notify({
+            Title = "Chop All",
+            Desc = "Menebang " .. chopped .. " pohon!",
+            Time = 2
         })
-    end,
+    end
 })
 
 -- ==========================================
 -- ITEM TP TAB
 -- ==========================================
-local ItemTPTab = Window:MakeTab({
-    Name = "Item TP",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local ItemTPTab = Window:Tab({Title = "Item TP", Icon = "tag"})
 
-ItemTPTab:AddParagraph("Item TP", "Tarik item ke karakter dengan stabil")
+ItemTPTab:Section({Title = "Item TP"})
 
 local itemCategories = {
     Food_Consumables = {"Berry", "Carrot", "Cake", "Apple", "Steak", "Morsel", "Cooked Steak", "Cooked Morsel", "Pumpkin", "Ribs"},
@@ -604,14 +565,15 @@ local selectedItems = {}
 
 for catName, listItems in pairs(itemCategories) do
     selectedItems[catName] = listItems[1]
-    ItemTPTab:AddDropdown({
-        Name = catName:gsub("_", " "),
-        Options = listItems,
-        Default = listItems[1],
-        Callback = function(value) selectedItems[catName] = value end,
+    ItemTPTab:Dropdown({
+        Title = catName:gsub("_", " "),
+        List = listItems,
+        Value = listItems[1],
+        Callback = function(value) selectedItems[catName] = value end
     })
-    ItemTPTab:AddButton({
-        Name = "Bring " .. catName:gsub("_", " "),
+    ItemTPTab:Button({
+        Title = "Bring " .. catName:gsub("_", " "),
+        Desc = "Tarik semua item",
         Callback = function()
             local hrp = getRootPart()
             if not hrp then return end
@@ -631,32 +593,27 @@ for catName, listItems in pairs(itemCategories) do
                 local tpPos = basePos + Vector3.new((i-1) % 3 * 1.5, math.floor((i-1) / 3) * 1.5, 0)
                 task.spawn(function() reliableDragItemToPos(data.item, tpPos) end)
             end
-            OrionLib:MakeNotification({
-                Name = "Item TP",
-                Content = "Tarik "..#toProcess.."x "..selected,
-                Image = "rbxassetid://4483345998",
-                Time = 2,
+            Window:Notify({
+                Title = "Item TP",
+                Desc = "Tarik "..#toProcess.."x "..selected,
+                Time = 2
             })
-        end,
+        end
     })
-    ItemTPTab:AddDivider()
 end
 
 -- ==========================================
 -- MISC TAB
 -- ==========================================
-local MiscTab = Window:MakeTab({
-    Name = "Misc",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local MiscTab = Window:Tab({Title = "Misc", Icon = "wrench"})
 
-MiscTab:AddParagraph("Miscellaneous", "Fitur Tambahan & Optimasi")
+MiscTab:Section({Title = "Miscellaneous"})
 
 local fullbrightConn = nil
-MiscTab:AddToggle({
-    Name = "Fullbright",
-    Default = false,
+MiscTab:Toggle({
+    Title = "Fullbright",
+    Desc = "Membuat seluruh map menjadi terang benderang",
+    Value = false,
     Callback = function(state)
         if state then
             Lighting.Brightness = 2
@@ -677,11 +634,12 @@ MiscTab:AddToggle({
             Lighting.ClockTime = 12
             Lighting.GlobalShadows = true
         end
-    end,
+    end
 })
 
-MiscTab:AddButton({
-    Name = "Reduce Map (Potato Mode)",
+MiscTab:Button({
+    Title = "Reduce Map (Potato Mode)",
+    Desc = "Hapus tekstur, part kecil & efek berat untuk boost FPS",
     Callback = function()
         pcall(function()
             for _, obj in ipairs(Workspace:GetDescendants()) do
@@ -709,14 +667,13 @@ MiscTab:AddButton({
             Lighting.GlobalShadows = false
             Lighting.FogEnd = 999999
             
-            OrionLib:MakeNotification({
-                Name = "Success",
-                Content = "Potato Mode Activated! FPS meningkat drastis.",
-                Image = "rbxassetid://4483345998",
-                Time = 3,
+            Window:Notify({
+                Title = "Success",
+                Desc = "Potato Mode Activated! FPS meningkat drastis.",
+                Time = 3
             })
         end)
-    end,
+    end
 })
 
 -- ==========================================
@@ -731,18 +688,16 @@ local function checkTime()
         return
     end
     if isNight and not wasNight then
-        OrionLib:MakeNotification({
-            Name = "🌙 Night Time",
-            Content = "Hati-hati dengan mob! Jam: " .. string.format("%.1f", currentTime),
-            Image = "rbxassetid://4483345998",
-            Time = 4,
+        Window:Notify({
+            Title = "🌙 Night Time",
+            Desc = "Hati-hati dengan mob! Jam: " .. string.format("%.1f", currentTime),
+            Time = 4
         })
     elseif not isNight and wasNight then
-        OrionLib:MakeNotification({
-            Name = "☀️ Day Time",
-            Content = "Jam: " .. string.format("%.1f", currentTime),
-            Image = "rbxassetid://4483345998",
-            Time = 4,
+        Window:Notify({
+            Title = "☀️ Day Time",
+            Desc = "Jam: " .. string.format("%.1f", currentTime),
+            Time = 4
         })
     end
     wasNight = isNight
@@ -787,43 +742,39 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-MiscTab:AddToggle({
-    Name = "FPS & Ping Counter",
-    Default = false,
-    Callback = function(state) fpsPingGui.Enabled = state end,
+MiscTab:Toggle({
+    Title = "FPS & Ping Counter",
+    Desc = "Tampilkan indikator FPS & Ping di layar",
+    Value = false,
+    Callback = function(state) fpsPingGui.Enabled = state end
 })
 
 -- ==========================================
 -- DISCORD BUTTON
 -- ==========================================
-MiscTab:AddDivider()
-MiscTab:AddParagraph("Social", "Join komunitas kami!")
+MiscTab:Section({Title = "Social"})
 
-MiscTab:AddButton({
-    Name = "Join Discord",
+MiscTab:Button({
+    Title = "Join Discord",
+    Desc = "Klik untuk bergabung ke Discord server",
     Callback = function()
         pcall(function()
             setclipboard(DISCORD_LINK)
-            OrionLib:MakeNotification({
-                Name = "Discord",
-                Content = "Link Discord disalin! " .. DISCORD_LINK,
-                Image = "rbxassetid://4483345998",
-                Time = 3,
+            Window:Notify({
+                Title = "Discord",
+                Desc = "Link Discord disalin! " .. DISCORD_LINK,
+                Time = 3
             })
         end)
-    end,
+    end
 })
 
 -- ==========================================
 -- VISUALS TAB (ESP Mobs & Items + Tree ESP)
 -- ==========================================
-local VisualsTab = Window:MakeTab({
-    Name = "Visuals",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local VisualsTab = Window:Tab({Title = "Visuals", Icon = "tag"})
 
-VisualsTab:AddParagraph("ESP", "Deteksi lokasi visual")
+VisualsTab:Section({Title = "ESP"})
 
 local espMobsEnabled, espItemsEnabled = false, false
 local espFolder = Instance.new("Folder")
@@ -861,21 +812,24 @@ local function refreshESP()
     end
 end
 
-VisualsTab:AddToggle({
-    Name = "ESP Mobs",
-    Default = false,
-    Callback = function(state) espMobsEnabled = state; refreshESP() end,
+VisualsTab:Toggle({
+    Title = "ESP Mobs",
+    Desc = "Tampilkan lokasi mobs",
+    Value = false,
+    Callback = function(state) espMobsEnabled = state; refreshESP() end
 })
 
-VisualsTab:AddToggle({
-    Name = "ESP Items",
-    Default = false,
-    Callback = function(state) espItemsEnabled = state; refreshESP() end,
+VisualsTab:Toggle({
+    Title = "ESP Items",
+    Desc = "Tampilkan lokasi items",
+    Value = false,
+    Callback = function(state) espItemsEnabled = state; refreshESP() end
 })
 
-VisualsTab:AddToggle({
-    Name = "ESP Trees",
-    Default = false,
+VisualsTab:Toggle({
+    Title = "ESP Trees",
+    Desc = "Tampilkan HP pohon",
+    Value = false,
     Callback = function(state)
         treeESPEnabled = state
         if state then
@@ -886,37 +840,34 @@ VisualsTab:AddToggle({
             end
             treeESPList = {}
         end
-    end,
+    end
 })
 
 -- ==========================================
 -- PLAYER TAB
 -- ==========================================
-local PlayerTab = Window:MakeTab({
-    Name = "Player",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false,
-})
+local PlayerTab = Window:Tab({Title = "Player", Icon = "tag"})
 
-PlayerTab:AddParagraph("Stats", "Modifikasi Karakter")
+PlayerTab:Section({Title = "Stats"})
 
-PlayerTab:AddSlider({
-    Name = "WalkSpeed",
+PlayerTab:Slider({
+    Title = "WalkSpeed",
     Min = 0,
     Max = 200,
-    Default = 16,
-    Increment = 1,
+    Rounding = 1,
+    Value = 16,
     Callback = function(value)
         local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
         if hum then hum.WalkSpeed = value end
-    end,
+    end
 })
 
 local infiniteJumpEnabled = false
-PlayerTab:AddToggle({
-    Name = "Infinite Jump",
-    Default = false,
-    Callback = function(state) infiniteJumpEnabled = state end,
+PlayerTab:Toggle({
+    Title = "Infinite Jump",
+    Desc = "Lompat tanpa batas di udara",
+    Value = false,
+    Callback = function(state) infiniteJumpEnabled = state end
 })
 
 UserInputService.JumpRequest:Connect(function()
@@ -1032,13 +983,13 @@ end)
 -- AUTO EAT LOOP
 -- ==========================================
 local autoEatHPThreshold = 70
-MainTab:AddSlider({
-    Name = "Eat HP Threshold",
+MainTab:Slider({
+    Title = "Eat HP Threshold",
     Min = 10,
     Max = 95,
-    Default = 70,
-    Increment = 5,
-    Callback = function(value) autoEatHPThreshold = value end,
+    Rounding = 5,
+    Value = 70,
+    Callback = function(value) autoEatHPThreshold = value end
 })
 
 task.spawn(function()
@@ -1106,11 +1057,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F5 then
         treeAuraEnabled = not treeAuraEnabled
-        OrionLib:MakeNotification({
-            Name = "Tree Aura",
-            Content = treeAuraEnabled and "ON" or "OFF",
-            Image = "rbxassetid://4483345998",
-            Time = 2,
+        Window:Notify({
+            Title = "Tree Aura",
+            Desc = treeAuraEnabled and "ON" or "OFF",
+            Time = 2
         })
     end
 end)
@@ -1118,11 +1068,10 @@ end)
 -- ==========================================
 -- NOTIFICATION LOADED
 -- ==========================================
-OrionLib:MakeNotification({
-    Name = "BlueHavenHub",
-    Content = "v5.32: Kill Aura + Tree Aura + Lost Child 1-4 siap!",
-    Image = "rbxassetid://4483345998",
-    Time = 5,
+Window:Notify({
+    Title = "BlueHavenHub",
+    Desc = "v5.32: Kill Aura + Tree Aura + Lost Child 1-4 siap!",
+    Time = 5
 })
 
 print("✅ BlueHavenHub v5.32 loaded – Kill Aura + Tree Aura + Lost Child 1-4 siap!")
