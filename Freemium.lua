@@ -2,7 +2,30 @@
 -- BlueHavenHub by Kntzy | v5.32 (Orion)
 -- ==========================================
 
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+-- Coba beberapa source URL Orion Library
+local OrionLib
+local success, err = pcall(function()
+    OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+end)
+
+if not success or not OrionLib then
+    -- Fallback ke URL alternatif
+    local success2, err2 = pcall(function()
+        OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/b3mb4m/Orion/main/source')))()
+    end)
+    
+    if not success2 or not OrionLib then
+        -- Fallback ke URL cadangan
+        local success3, err3 = pcall(function()
+            OrionLib = loadstring(game:HttpGet(('https://pastebin.com/raw/5VbB4XrH')))()
+        end)
+        
+        if not success3 or not OrionLib then
+            error("Gagal memuat Orion Library. Coba gunakan library lain.")
+        end
+    end
+end
+
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -327,7 +350,7 @@ local Window = OrionLib:MakeWindow({
     ConfigFolder = "BlueHaven_Config",
     IntroEnabled = true,
     IntroText = "BlueHavenHub",
-    IntroIcon = "rbxassetid://1234567890",
+    IntroIcon = "rbxassetid://4483345998",
 })
 
 -- ==========================================
