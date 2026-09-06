@@ -1,9 +1,8 @@
 -- ==========================================
--- BlueHavenHub by Kntzy | v5.32 (WindUI)
+-- BlueHavenHub by Kntzy | v5.32 (Orion)
 -- ==========================================
 
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/xAstroBoy/WindUI/main/source.lua"))()
-
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -319,35 +318,28 @@ local function refreshTreeESP()
 end
 
 -- ==========================================
--- MOBILE UI SETUP - WINDUI
+-- ORION UI SETUP
 -- ==========================================
-local cam = workspace.CurrentCamera
-local screenSize = cam and cam.ViewportSize or Vector2.new(800, 600)
-
-local Window = WindUI:CreateWindow({
-    Name = "BlueHavenHub",
-    Theme = "Dark",
-    Size = Vector2.new(400, 500),
-    Position = UDim2.new(0.5, -200, 0.5, -250),
-    Draggable = true,
-    Resizable = false,
-    Keybind = Enum.KeyCode.RightShift,
-})
-
--- ==========================================
--- DISCORD BUTTON DI WINDOW
--- ==========================================
-Window:CreateDiscordButton({
-    Name = "Discord",
-    Link = DISCORD_LINK,
-    Image = "rbxassetid://1234567890" -- Ganti dengan ID asset Discord logo jika ada
+local Window = OrionLib:MakeWindow({
+    Name = "BlueHavenHub v5.32",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "BlueHaven_Config",
+    IntroEnabled = true,
+    IntroText = "BlueHavenHub",
+    IntroIcon = "rbxassetid://1234567890",
 })
 
 -- ==========================================
 -- MAIN TAB
 -- ==========================================
-local MainTab = Window:CreateTab("Main")
-MainTab:CreateParagraph("Auto Farm", "Otomatisasi Makanan & Grind")
+local MainTab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+MainTab:AddParagraph("Auto Farm", "Otomatisasi Makanan & Grind")
 
 local autoEatEnabled = false
 local autoCookEnabled = false
@@ -355,58 +347,104 @@ local autoEatFoods = {"Cooked Steak", "Cooked Morsel", "Berry", "Carrot", "Apple
 local rawFoodsToCook = {"Morsel", "Steak"}
 local maxGrindRadius = 1000 
 
-MainTab:CreateToggle("Auto Eat", "Makan otomatis saat HP < 70%", function(state) autoEatEnabled = state end)
-MainTab:CreateToggle("Auto Cook", "Masak makanan mentah di Campfire", function(state) autoCookEnabled = state end)
+MainTab:AddToggle({
+    Name = "Auto Eat",
+    Default = false,
+    Callback = function(state) autoEatEnabled = state end,
+})
 
-MainTab:CreateDivider()
-MainTab:CreateParagraph("Grind & Fuel", "")
-MainTab:CreateInput("Max Grab Radius", "Batas jarak ambil item", function(value)
-    local num = tonumber(value)
-    if num then maxGrindRadius = num end
-end)
+MainTab:AddToggle({
+    Name = "Auto Cook",
+    Default = false,
+    Callback = function(state) autoCookEnabled = state end,
+})
+
+MainTab:AddDivider()
+
+MainTab:AddParagraph("Grind & Fuel", "")
+
+MainTab:AddSlider({
+    Name = "Max Grab Radius",
+    Min = 0,
+    Max = 2000,
+    Default = 1000,
+    Increment = 10,
+    Callback = function(value) maxGrindRadius = value end,
+})
 
 local autoGrindItems = {}
-MainTab:CreateMultiDropdown("Auto Grind", "Pilih item untuk mesin",
-    {"UFO Junk", "UFO Component", "Old Car Engine", "Broken Fan", "Old Microwave", "Bolt", "Log", "Cultist Gem", "Sheet Metal", "Old Radio", "Tyre", "Washing Machine", "Gem of the Forest Fragment", "Broken Microwave"},
-    function(selected)
+MainTab:AddDropdown({
+    Name = "Auto Grind",
+    Options = {"UFO Junk", "UFO Component", "Old Car Engine", "Broken Fan", "Old Microwave", "Bolt", "Log", "Cultist Gem", "Sheet Metal", "Old Radio", "Tyre", "Washing Machine", "Gem of the Forest Fragment", "Broken Microwave"},
+    Default = "",
+    Callback = function(selected)
         autoGrindItems = {}
-        for _, v in ipairs(selected) do autoGrindItems[v] = true end
-    end
-)
+        if selected then autoGrindItems[selected] = true end
+    end,
+})
 
 local autoFuelItems = {}
-MainTab:CreateMultiDropdown("Auto Fuel", "Pilih bahan bakar Campfire",
-    {"Log", "Coal", "Fuel Canister", "Oil Barrel", "Biofuel"},
-    function(selected)
+MainTab:AddDropdown({
+    Name = "Auto Fuel",
+    Options = {"Log", "Coal", "Fuel Canister", "Oil Barrel", "Biofuel"},
+    Default = "",
+    Callback = function(selected)
         autoFuelItems = {}
-        for _, v in ipairs(selected) do autoFuelItems[v] = true end
-    end
-)
+        if selected then autoFuelItems[selected] = true end
+    end,
+})
 
 -- ==========================================
 -- TELEPORTS TAB
 -- ==========================================
-local TeleportsTab = Window:CreateTab("Teleports")
-TeleportsTab:CreateParagraph("Locations", "Teleportasi Karakter")
-TeleportsTab:CreateButton("TP to Campfire", "Kembali ke area perapian", function() teleportPlayerTo(CAMPFIRE_POS) end)
+local TeleportsTab = Window:MakeTab({
+    Name = "Teleports",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+TeleportsTab:AddParagraph("Locations", "Teleportasi Karakter")
+
+TeleportsTab:AddButton({
+    Name = "TP to Campfire",
+    Callback = function() teleportPlayerTo(CAMPFIRE_POS) end,
+})
 
 for i = 1, 4 do
-    TeleportsTab:CreateButton("TP to Lost Child " .. i, "Teleport ke Jail Cellar " .. i, function()
-        local part = getLostChildPart(i)
-        if part then
-            teleportPlayerTo(part.Position)
-            WindUI:Notify("Teleport", "Lost Child "..i, "Berhasil!", 2)
-        else
-            WindUI:Notify("Error", "Lost Child "..i.." tidak ditemukan", "Cek apakah lokasi ada", 2)
-        end
-    end)
+    TeleportsTab:AddButton({
+        Name = "TP to Lost Child " .. i,
+        Callback = function()
+            local part = getLostChildPart(i)
+            if part then
+                teleportPlayerTo(part.Position)
+                OrionLib:MakeNotification({
+                    Name = "Teleport",
+                    Content = "Lost Child "..i.." Berhasil!",
+                    Image = "rbxassetid://4483345998",
+                    Time = 2,
+                })
+            else
+                OrionLib:MakeNotification({
+                    Name = "Error",
+                    Content = "Lost Child "..i.." tidak ditemukan!",
+                    Image = "rbxassetid://4483345998",
+                    Time = 2,
+                })
+            end
+        end,
+    })
 end
 
 -- ==========================================
 -- AURA TAB (KILL AURA)
 -- ==========================================
-local CombatTab = Window:CreateTab("Aura")
-CombatTab:CreateParagraph("Combat", "Kill Aura (Damage Spoofing)")
+local CombatTab = Window:MakeTab({
+    Name = "Aura",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+CombatTab:AddParagraph("Combat", "Kill Aura (Damage Spoofing)")
 
 local killAuraEnabled = false
 local auraRadius = 350 
@@ -426,63 +464,109 @@ local function getBestSpoofTool()
     return nil, nil
 end
 
-CombatTab:CreateToggle("Kill Aura", "Serang mobs di sekitar", function(state) killAuraEnabled = state end)
-CombatTab:CreateInput("Radius", "Jangkauan serangan", function(value)
-    local num = tonumber(value)
-    if num then auraRadius = num end
-end)
+CombatTab:AddToggle({
+    Name = "Kill Aura",
+    Default = false,
+    Callback = function(state) killAuraEnabled = state end,
+})
+
+CombatTab:AddSlider({
+    Name = "Radius",
+    Min = 0,
+    Max = 500,
+    Default = 350,
+    Increment = 10,
+    Callback = function(value) auraRadius = value end,
+})
 
 -- ==========================================
 -- TREE AURA TAB
 -- ==========================================
-local TreeTab = Window:CreateTab("Tree Aura")
-TreeTab:CreateParagraph("Tree Aura", "Nebang pohon di sekitar")
+local TreeTab = Window:MakeTab({
+    Name = "Tree Aura",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+TreeTab:AddParagraph("Tree Aura", "Nebang pohon di sekitar")
 
 local treeAuraEnabled = false
 local treeAuraRadius = 80
 
-TreeTab:CreateToggle("Tree Aura", "Aktifkan / Nonaktifkan", function(state)
-    treeAuraEnabled = state
-    if state then
-        WindUI:Notify("Tree Aura", "ON", "Multi-target aktif! Radius: " .. treeAuraRadius, 2)
-    else
-        WindUI:Notify("Tree Aura", "OFF", "Dinonaktifkan", 2)
-    end
-end)
-
-TreeTab:CreateInput("Radius", "Jarak tebang pohon", function(value)
-    local num = tonumber(value)
-    if num and num > 0 then
-        treeAuraRadius = num
-    else
-        WindUI:Notify("Error", "Masukkan angka yang valid!", "Radius tidak berubah", 2)
-    end
-end)
-
-TreeTab:CreateButton("Test Chop All", "Tebang SEMUA pohon dalam radius (1x)", function()
-    local trees = TreeUtility:GetTreesInRadius(treeAuraRadius)
-    if #trees == 0 then
-        WindUI:Notify("Info", "Tidak ada pohon dalam radius", "Radius: " .. treeAuraRadius, 2)
-        return
-    end
-
-    local chopped = 0
-    for _, info in ipairs(trees) do
-        local result = TreeUtility:ChopTree(info.Tree, info.Trunk)
-        if typeof(result) == "table" and #result == 2 then
-            chopped = chopped + 1
+TreeTab:AddToggle({
+    Name = "Tree Aura",
+    Default = false,
+    Callback = function(state)
+        treeAuraEnabled = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "Tree Aura",
+                Content = "ON! Radius: " .. treeAuraRadius,
+                Image = "rbxassetid://4483345998",
+                Time = 2,
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Tree Aura",
+                Content = "OFF!",
+                Image = "rbxassetid://4483345998",
+                Time = 2,
+            })
         end
-        task.wait(0.05)
-    end
+    end,
+})
 
-    WindUI:Notify("Chop All", "Sukses!", "Menebang " .. chopped .. " pohon", 2)
-end)
+TreeTab:AddSlider({
+    Name = "Radius",
+    Min = 0,
+    Max = 200,
+    Default = 80,
+    Increment = 5,
+    Callback = function(value) treeAuraRadius = value end,
+})
+
+TreeTab:AddButton({
+    Name = "Test Chop All",
+    Callback = function()
+        local trees = TreeUtility:GetTreesInRadius(treeAuraRadius)
+        if #trees == 0 then
+            OrionLib:MakeNotification({
+                Name = "Info",
+                Content = "Tidak ada pohon dalam radius!",
+                Image = "rbxassetid://4483345998",
+                Time = 2,
+            })
+            return
+        end
+
+        local chopped = 0
+        for _, info in ipairs(trees) do
+            local result = TreeUtility:ChopTree(info.Tree, info.Trunk)
+            if typeof(result) == "table" and #result == 2 then
+                chopped = chopped + 1
+            end
+            task.wait(0.05)
+        end
+
+        OrionLib:MakeNotification({
+            Name = "Chop All",
+            Content = "Menebang " .. chopped .. " pohon!",
+            Image = "rbxassetid://4483345998",
+            Time = 2,
+        })
+    end,
+})
 
 -- ==========================================
 -- ITEM TP TAB
 -- ==========================================
-local ItemTPTab = Window:CreateTab("Item TP")
-ItemTPTab:CreateParagraph("Item TP", "Tarik item ke karakter dengan stabil")
+local ItemTPTab = Window:MakeTab({
+    Name = "Item TP",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+ItemTPTab:AddParagraph("Item TP", "Tarik item ke karakter dengan stabil")
 
 local itemCategories = {
     Food_Consumables = {"Berry", "Carrot", "Cake", "Apple", "Steak", "Morsel", "Cooked Steak", "Cooked Morsel", "Pumpkin", "Ribs"},
@@ -497,90 +581,120 @@ local selectedItems = {}
 
 for catName, listItems in pairs(itemCategories) do
     selectedItems[catName] = listItems[1]
-    ItemTPTab:CreateDropdown(catName:gsub("_", " "), listItems, function(value) selectedItems[catName] = value end)
-    ItemTPTab:CreateButton("Bring " .. catName:gsub("_", " "), "Tarik semua item", function()
-        local hrp = getRootPart()
-        if not hrp then return end
-        local selected = selectedItems[catName]
-        local toProcess = {}
-        for _, item in ipairs(ItemsFolder:GetDescendants()) do
-            if item.Name == selected and (item:IsA("Model") or item:IsA("Tool") or item:IsA("BasePart")) then
-                local pos = getItemPosition(item)
-                if pos then
-                    table.insert(toProcess, {item = item, dist = (pos - hrp.Position).Magnitude})
+    ItemTPTab:AddDropdown({
+        Name = catName:gsub("_", " "),
+        Options = listItems,
+        Default = listItems[1],
+        Callback = function(value) selectedItems[catName] = value end,
+    })
+    ItemTPTab:AddButton({
+        Name = "Bring " .. catName:gsub("_", " "),
+        Callback = function()
+            local hrp = getRootPart()
+            if not hrp then return end
+            local selected = selectedItems[catName]
+            local toProcess = {}
+            for _, item in ipairs(ItemsFolder:GetDescendants()) do
+                if item.Name == selected and (item:IsA("Model") or item:IsA("Tool") or item:IsA("BasePart")) then
+                    local pos = getItemPosition(item)
+                    if pos then
+                        table.insert(toProcess, {item = item, dist = (pos - hrp.Position).Magnitude})
+                    end
                 end
             end
-        end
-        table.sort(toProcess, function(a, b) return a.dist < b.dist end)
-        local basePos = hrp.Position + Vector3.new(0, 2, 0)
-        for i, data in ipairs(toProcess) do
-            local tpPos = basePos + Vector3.new((i-1) % 3 * 1.5, math.floor((i-1) / 3) * 1.5, 0)
-            task.spawn(function() reliableDragItemToPos(data.item, tpPos) end)
-        end
-        WindUI:Notify("Item TP", "Tarik "..#toProcess.."x "..selected, "", 2)
-    end)
-    ItemTPTab:CreateDivider()
+            table.sort(toProcess, function(a, b) return a.dist < b.dist end)
+            local basePos = hrp.Position + Vector3.new(0, 2, 0)
+            for i, data in ipairs(toProcess) do
+                local tpPos = basePos + Vector3.new((i-1) % 3 * 1.5, math.floor((i-1) / 3) * 1.5, 0)
+                task.spawn(function() reliableDragItemToPos(data.item, tpPos) end)
+            end
+            OrionLib:MakeNotification({
+                Name = "Item TP",
+                Content = "Tarik "..#toProcess.."x "..selected,
+                Image = "rbxassetid://4483345998",
+                Time = 2,
+            })
+        end,
+    })
+    ItemTPTab:AddDivider()
 end
 
 -- ==========================================
 -- MISC TAB
 -- ==========================================
-local MiscTab = Window:CreateTab("Misc")
-MiscTab:CreateParagraph("Miscellaneous", "Fitur Tambahan & Optimasi")
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+MiscTab:AddParagraph("Miscellaneous", "Fitur Tambahan & Optimasi")
 
 local fullbrightConn = nil
-MiscTab:CreateToggle("Fullbright", "Membuat seluruh map menjadi terang benderang", function(state)
-    if state then
-        Lighting.Brightness = 2
-        Lighting.ClockTime = 14
-        Lighting.FogEnd = 100000
-        Lighting.GlobalShadows = false
-        fullbrightConn = RunService.RenderStepped:Connect(function()
+MiscTab:AddToggle({
+    Name = "Fullbright",
+    Default = false,
+    Callback = function(state)
+        if state then
             Lighting.Brightness = 2
             Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
             Lighting.GlobalShadows = false
-        end)
-    else
-        if fullbrightConn then
-            fullbrightConn:Disconnect()
-            fullbrightConn = nil
+            fullbrightConn = RunService.RenderStepped:Connect(function()
+                Lighting.Brightness = 2
+                Lighting.ClockTime = 14
+                Lighting.GlobalShadows = false
+            end)
+        else
+            if fullbrightConn then
+                fullbrightConn:Disconnect()
+                fullbrightConn = nil
+            end
+            Lighting.Brightness = 1
+            Lighting.ClockTime = 12
+            Lighting.GlobalShadows = true
         end
-        Lighting.Brightness = 1
-        Lighting.ClockTime = 12
-        Lighting.GlobalShadows = true
-    end
-end)
+    end,
+})
 
-MiscTab:CreateButton("Reduce Map (Potato Mode)", "Hapus tekstur, part kecil & efek berat untuk boost FPS", function()
-    pcall(function()
-        for _, obj in ipairs(Workspace:GetDescendants()) do
-            if obj:IsA("BasePart") then
-                obj.Material = Enum.Material.SmoothPlastic
-                obj.Reflectance = 0
-                if obj.Size.Magnitude < 1.5 and not obj.Anchored and not obj:IsDescendantOf(LocalPlayer.Character) then
+MiscTab:AddButton({
+    Name = "Reduce Map (Potato Mode)",
+    Callback = function()
+        pcall(function()
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    obj.Material = Enum.Material.SmoothPlastic
+                    obj.Reflectance = 0
+                    if obj.Size.Magnitude < 1.5 and not obj.Anchored and not obj:IsDescendantOf(LocalPlayer.Character) then
+                        obj:Destroy()
+                    end
+                elseif obj:IsA("Texture") or obj:IsA("Decal") then
                     obj:Destroy()
+                elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+                    obj:Destroy()
+                elseif obj:IsA("PostEffect") then
+                    obj.Enabled = false
                 end
-            elseif obj:IsA("Texture") or obj:IsA("Decal") then
-                obj:Destroy()
-            elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
-                obj:Destroy()
-            elseif obj:IsA("PostEffect") then
-                obj.Enabled = false
             end
-        end
-        
-        for _, effect in ipairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") or effect:IsA("Atmosphere") or effect:IsA("Sky") then
-                effect:Destroy()
+            
+            for _, effect in ipairs(Lighting:GetChildren()) do
+                if effect:IsA("PostEffect") or effect:IsA("Atmosphere") or effect:IsA("Sky") then
+                    effect:Destroy()
+                end
             end
-        end
-        
-        Lighting.GlobalShadows = false
-        Lighting.FogEnd = 999999
-        
-        WindUI:Notify("Success", "Potato Mode", "Map di-optimize! FPS meningkat drastis.", 3)
-    end)
-end)
+            
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 999999
+            
+            OrionLib:MakeNotification({
+                Name = "Success",
+                Content = "Potato Mode Activated! FPS meningkat drastis.",
+                Image = "rbxassetid://4483345998",
+                Time = 3,
+            })
+        end)
+    end,
+})
 
 -- ==========================================
 -- AUTO NIGHT & DAY NOTIFICATION
@@ -594,9 +708,19 @@ local function checkTime()
         return
     end
     if isNight and not wasNight then
-        WindUI:Notify("🌙 Night Time", "Hari telah berubah menjadi malam, hati hati dengan mob!", "Jam: " .. string.format("%.1f", currentTime), 4)
+        OrionLib:MakeNotification({
+            Name = "🌙 Night Time",
+            Content = "Hati-hati dengan mob! Jam: " .. string.format("%.1f", currentTime),
+            Image = "rbxassetid://4483345998",
+            Time = 4,
+        })
     elseif not isNight and wasNight then
-        WindUI:Notify("☀️ Day Time", "Hari telah berubah menjadi siang!", "Jam: " .. string.format("%.1f", currentTime), 4)
+        OrionLib:MakeNotification({
+            Name = "☀️ Day Time",
+            Content = "Jam: " .. string.format("%.1f", currentTime),
+            Image = "rbxassetid://4483345998",
+            Time = 4,
+        })
     end
     wasNight = isNight
 end
@@ -640,27 +764,43 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-MiscTab:CreateToggle("FPS & Ping Counter", "Tampilkan indikator FPS & Ping di layar", function(state)
-    fpsPingGui.Enabled = state
-end)
+MiscTab:AddToggle({
+    Name = "FPS & Ping Counter",
+    Default = false,
+    Callback = function(state) fpsPingGui.Enabled = state end,
+})
 
 -- ==========================================
--- DISCORD BUTTON DI MISC TAB
+-- DISCORD BUTTON
 -- ==========================================
-MiscTab:CreateDivider()
-MiscTab:CreateParagraph("Social", "Join komunitas kami!")
-MiscTab:CreateButton("Join Discord", "Klik untuk bergabung ke Discord server", function()
-    pcall(function()
-        setclipboard(DISCORD_LINK)
-        WindUI:Notify("Discord", "Link Discord disalin!", "https://discord.gg/Vzbs245EC", 2)
-    end)
-end)
+MiscTab:AddDivider()
+MiscTab:AddParagraph("Social", "Join komunitas kami!")
+
+MiscTab:AddButton({
+    Name = "Join Discord",
+    Callback = function()
+        pcall(function()
+            setclipboard(DISCORD_LINK)
+            OrionLib:MakeNotification({
+                Name = "Discord",
+                Content = "Link Discord disalin! " .. DISCORD_LINK,
+                Image = "rbxassetid://4483345998",
+                Time = 3,
+            })
+        end)
+    end,
+})
 
 -- ==========================================
 -- VISUALS TAB (ESP Mobs & Items + Tree ESP)
 -- ==========================================
-local VisualsTab = Window:CreateTab("Visuals")
-VisualsTab:CreateParagraph("ESP", "Deteksi lokasi visual")
+local VisualsTab = Window:MakeTab({
+    Name = "Visuals",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+VisualsTab:AddParagraph("ESP", "Deteksi lokasi visual")
 
 local espMobsEnabled, espItemsEnabled = false, false
 local espFolder = Instance.new("Folder")
@@ -698,33 +838,63 @@ local function refreshESP()
     end
 end
 
-VisualsTab:CreateToggle("ESP Mobs", "Tampilkan lokasi mobs", function(state) espMobsEnabled = state; refreshESP() end)
-VisualsTab:CreateToggle("ESP Items", "Tampilkan lokasi items", function(state) espItemsEnabled = state; refreshESP() end)
-VisualsTab:CreateToggle("ESP Trees", "Tampilkan HP pohon", function(state)
-    treeESPEnabled = state
-    if state then
-        refreshTreeESP()
-    else
-        for _, esp in pairs(treeESPList) do
-            pcall(function() esp.gui:Destroy() end)
+VisualsTab:AddToggle({
+    Name = "ESP Mobs",
+    Default = false,
+    Callback = function(state) espMobsEnabled = state; refreshESP() end,
+})
+
+VisualsTab:AddToggle({
+    Name = "ESP Items",
+    Default = false,
+    Callback = function(state) espItemsEnabled = state; refreshESP() end,
+})
+
+VisualsTab:AddToggle({
+    Name = "ESP Trees",
+    Default = false,
+    Callback = function(state)
+        treeESPEnabled = state
+        if state then
+            refreshTreeESP()
+        else
+            for _, esp in pairs(treeESPList) do
+                pcall(function() esp.gui:Destroy() end)
+            end
+            treeESPList = {}
         end
-        treeESPList = {}
-    end
-end)
+    end,
+})
 
 -- ==========================================
 -- PLAYER TAB
 -- ==========================================
-local PlayerTab = Window:CreateTab("Player")
-PlayerTab:CreateParagraph("Stats", "Modifikasi Karakter")
+local PlayerTab = Window:MakeTab({
+    Name = "Player",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
 
-PlayerTab:CreateSlider("WalkSpeed", "Kecepatan berjalan", 0, 200, 16, function(value)
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = value end
-end)
+PlayerTab:AddParagraph("Stats", "Modifikasi Karakter")
+
+PlayerTab:AddSlider({
+    Name = "WalkSpeed",
+    Min = 0,
+    Max = 200,
+    Default = 16,
+    Increment = 1,
+    Callback = function(value)
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then hum.WalkSpeed = value end
+    end,
+})
 
 local infiniteJumpEnabled = false
-PlayerTab:CreateToggle("Infinite Jump", "Lompat tanpa batas di udara", function(state) infiniteJumpEnabled = state end)
+PlayerTab:AddToggle({
+    Name = "Infinite Jump",
+    Default = false,
+    Callback = function(state) infiniteJumpEnabled = state end,
+})
 
 UserInputService.JumpRequest:Connect(function()
     if infiniteJumpEnabled then
@@ -839,9 +1009,14 @@ end)
 -- AUTO EAT LOOP
 -- ==========================================
 local autoEatHPThreshold = 70
-MainTab:CreateSlider("Eat HP Threshold", "Makan saat HP di bawah %", 10, 95, 70, function(v)
-    autoEatHPThreshold = v
-end)
+MainTab:AddSlider({
+    Name = "Eat HP Threshold",
+    Min = 10,
+    Max = 95,
+    Default = 70,
+    Increment = 5,
+    Callback = function(value) autoEatHPThreshold = value end,
+})
 
 task.spawn(function()
     while ScriptRunning do
@@ -908,13 +1083,23 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F5 then
         treeAuraEnabled = not treeAuraEnabled
-        WindUI:Notify("Tree Aura", treeAuraEnabled and "ON" or "OFF", "Press F5 again to toggle", 2)
+        OrionLib:MakeNotification({
+            Name = "Tree Aura",
+            Content = treeAuraEnabled and "ON" or "OFF",
+            Image = "rbxassetid://4483345998",
+            Time = 2,
+        })
     end
 end)
 
 -- ==========================================
 -- NOTIFICATION LOADED
 -- ==========================================
-WindUI:Notify("BlueHavenHub", "Loaded", "v5.32: Kill Aura + Tree Aura + Lost Child 1-4", 5)
+OrionLib:MakeNotification({
+    Name = "BlueHavenHub",
+    Content = "v5.32: Kill Aura + Tree Aura + Lost Child 1-4 siap!",
+    Image = "rbxassetid://4483345998",
+    Time = 5,
+})
 
 print("✅ BlueHavenHub v5.32 loaded – Kill Aura + Tree Aura + Lost Child 1-4 siap!")
