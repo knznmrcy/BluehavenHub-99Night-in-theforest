@@ -23,6 +23,11 @@ local CAMPFIRE_POS = Vector3.new(0, 19, 0)
 local MACHINE_POS = Vector3.new(21, 16, -5)
 
 -- ==========================================
+-- DISCORD LINK
+-- ==========================================
+local DISCORD_LINK = "https://discord.gg/BW8ueD8qc"
+
+-- ==========================================
 -- FUNGSI UNTUK LOST CHILD (1-4)
 -- ==========================================
 local function getLostChildPart(index)
@@ -577,6 +582,23 @@ Window:AddButton(MiscTab, "Reduce Map (Potato Mode)", "Hapus tekstur, part kecil
 end)
 
 -- ==========================================
+-- DISCORD BUTTON DI MISC TAB
+-- ==========================================
+Window:AddDivider(MiscTab, "Social")
+Window:AddButton(MiscTab, "Join Discord", "Klik untuk bergabung ke Discord server", "rbxassetid://16932740082", function()
+    pcall(function()
+        setclipboard(DISCORD_LINK)
+        Window:Notify({
+            Title = "Discord",
+            Description = "Link Discord disalin!",
+            Content = DISCORD_LINK,
+            Color = Color3.fromRGB(88, 101, 242),
+            Delay = 3
+        })
+    end)
+end)
+
+-- ==========================================
 -- AUTO NIGHT & DAY NOTIFICATION
 -- ==========================================
 local wasNight = nil
@@ -728,7 +750,7 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 -- ==========================================
--- KILL AURA BACKGROUND LOOP (TIDAK DIUBAH)
+-- KILL AURA BACKGROUND LOOP
 -- ==========================================
 task.spawn(function()
     while ScriptRunning do
@@ -765,7 +787,7 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- TREE AURA BACKGROUND LOOP (BARU)
+-- TREE AURA BACKGROUND LOOP
 -- ==========================================
 task.spawn(function()
     while true do
@@ -827,9 +849,9 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- AUTO EAT LOOP (IMPROVED)
+-- AUTO EAT LOOP
 -- ==========================================
-local autoEatHPThreshold = 70 -- persen
+local autoEatHPThreshold = 70
 Window:AddSlider(MainTab, "Eat HP Threshold", "Makan saat HP di bawah %", 10, 95, 70, function(v)
     autoEatHPThreshold = v
 end, "EatThreshold")
