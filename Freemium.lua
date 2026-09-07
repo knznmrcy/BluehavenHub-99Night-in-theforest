@@ -1,8 +1,8 @@
 -- ==========================================
--- BlueHavenHub by Kntzy | v5.32 (WindUI)
+-- BlueHavenHub by Kntzy | v5.32
 -- ==========================================
 
-local WindUI = loadstring(game:HttpGet('https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/main_example.lua'))()
+local Kairo = loadstring(game:HttpGet("https://raw.githubusercontent.com/Itzzavi335/Kairo-Ui-Library/refs/heads/main/source.luau"))()
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -11,8 +11,6 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local ItemsFolder = Workspace:FindFirstChild("Items") or Workspace:WaitForChild("Items")
@@ -23,11 +21,6 @@ local TreesFolder = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstC
 local ScriptRunning = true
 local CAMPFIRE_POS = Vector3.new(0, 19, 0)
 local MACHINE_POS = Vector3.new(21, 16, -5)
-
--- ==========================================
--- DISCORD LINK
--- ==========================================
-local DISCORD_LINK = "https://discord.gg/Vzbs245EC"
 
 -- ==========================================
 -- FUNGSI UNTUK LOST CHILD (1-4)
@@ -319,24 +312,40 @@ local function refreshTreeESP()
 end
 
 -- ==========================================
--- WINDUI SETUP
+-- MOBILE UI SETUP
 -- ==========================================
-local Window = WindUI:CreateWindow({
-    Name = "BlueHavenHub v5.32",
-    Theme = "Dark",
-    Size = Vector2.new(400, 500),
-    Position = UDim2.new(0.5, -200, 0.5, -250),
+local cam = workspace.CurrentCamera
+local screenSize = cam and cam.ViewportSize or Vector2.new(800, 600)
+local uiWidth = math.min(340, math.max(300, screenSize.X * 0.9))
+local uiHeight = math.min(420, math.max(320, screenSize.Y * 0.78))
+
+local Window = Kairo:CreateWindow({
+    Title = "BlueHavenHub",
+    Theme = "Midnight",
+    Size = UDim2.fromOffset(uiWidth, uiHeight),
+    Center = true,
     Draggable = true,
-    Resizable = false,
-    Keybind = Enum.KeyCode.RightShift,
+    Resize = false,
+    Badges = {"by Kntzy", "v5.32"},
+    MinimizeKey = Enum.KeyCode.RightShift,
+    MinimizeButton = true,
+    MinimizeButton_Image = "rbxassetid://116850882259653",
+    Config = { Enabled = true, Folder = "BlueHaven_Config", AutoLoad = true }
 })
+
+local MainTab = Window:CreateTab("Main", "rbxassetid://16932740082")
+local CombatTab = Window:CreateTab("Aura", "rbxassetid://16932740082")
+local TreeTab = Window:CreateTab("Tree Aura", "rbxassetid://16932740082")
+local ItemTPTab = Window:CreateTab("Item TP", "rbxassetid://16932740082")
+local TeleportsTab = Window:CreateTab("Teleports", "rbxassetid://16932740082") 
+local VisualsTab = Window:CreateTab("Visuals", "rbxassetid://16932740082")
+local PlayerTab = Window:CreateTab("Player", "rbxassetid://16932740082")
+local MiscTab = Window:CreateTab("Misc", "rbxassetid://16932740082")
 
 -- ==========================================
 -- MAIN TAB
 -- ==========================================
-local MainTab = Window:CreateTab("Main")
-
-MainTab:CreateParagraph("Auto Farm", "Otomatisasi Makanan & Grind")
+Window:AddParagraph(MainTab, "Auto Farm", "Otomatisasi Makanan & Grind")
 
 local autoEatEnabled = false
 local autoCookEnabled = false
@@ -344,49 +353,50 @@ local autoEatFoods = {"Cooked Steak", "Cooked Morsel", "Berry", "Carrot", "Apple
 local rawFoodsToCook = {"Morsel", "Steak"}
 local maxGrindRadius = 1000 
 
-MainTab:CreateToggle("Auto Eat", "Makan otomatis saat HP < 70%", function(state) autoEatEnabled = state end)
-MainTab:CreateToggle("Auto Cook", "Masak makanan mentah di Campfire", function(state) autoCookEnabled = state end)
+Window:AddToggle(MainTab, "Auto Eat", "Makan otomatis saat HP < 70%", false, function(state) autoEatEnabled = state end, "AutoEat")
+Window:AddToggle(MainTab, "Auto Cook", "Masak makanan mentah di Campfire", false, function(state) autoCookEnabled = state end, "AutoCook")
 
-MainTab:CreateDivider()
-MainTab:CreateParagraph("Grind & Fuel", "")
-
-MainTab:CreateSlider("Max Grab Radius", "Batas jarak ambil item", 0, 2000, 1000, function(value) maxGrindRadius = value end)
+Window:AddDivider(MainTab, "Grind & Fuel")
+Window:AddInput(MainTab, "Max Grab Radius", "Batas jarak ambil item", "1000", function(value)
+    local num = tonumber(value)
+    if num then maxGrindRadius = num end
+end, "MaxGrabRadius")
 
 local autoGrindItems = {}
-MainTab:CreateDropdown("Auto Grind", "Pilih item untuk mesin",
+Window:AddMultiDropdown(MainTab, "Auto Grind", "Pilih item untuk mesin",
     {"UFO Junk", "UFO Component", "Old Car Engine", "Broken Fan", "Old Microwave", "Bolt", "Log", "Cultist Gem", "Sheet Metal", "Old Radio", "Tyre", "Washing Machine", "Gem of the Forest Fragment", "Broken Microwave"},
-    function(selected)
+    {}, function(selected)
         autoGrindItems = {}
-        if selected then autoGrindItems[selected] = true end
-    end
+        for _, v in ipairs(selected) do autoGrindItems[v] = true end
+    end, "AutoGrind"
 )
 
 local autoFuelItems = {}
-MainTab:CreateDropdown("Auto Fuel", "Pilih bahan bakar Campfire",
+Window:AddMultiDropdown(MainTab, "Auto Fuel", "Pilih bahan bakar Campfire",
     {"Log", "Coal", "Fuel Canister", "Oil Barrel", "Biofuel"},
-    function(selected)
+    {}, function(selected)
         autoFuelItems = {}
-        if selected then autoFuelItems[selected] = true end
-    end
+        for _, v in ipairs(selected) do autoFuelItems[v] = true end
+    end, "AutoFuel"
 )
 
 -- ==========================================
--- TELEPORTS TAB
+-- TELEPORTS TAB (DENGAN LOST CHILD 1-4)
 -- ==========================================
-local TeleportsTab = Window:CreateTab("Teleports")
+Window:AddParagraph(TeleportsTab, "Locations", "Teleportasi Karakter")
+Window:AddButton(TeleportsTab, "TP to Campfire", "Kembali ke area perapian", "rbxassetid://16932740082", function() teleportPlayerTo(CAMPFIRE_POS) end)
 
-TeleportsTab:CreateParagraph("Locations", "Teleportasi Karakter")
-
-TeleportsTab:CreateButton("TP to Campfire", "Kembali ke area perapian", function() teleportPlayerTo(CAMPFIRE_POS) end)
-
+-- Tambahkan 4 tombol Lost Child
 for i = 1, 4 do
-    TeleportsTab:CreateButton("TP to Lost Child " .. i, "Teleport ke Jail Cellar " .. i, function()
+    local label = "TP to Lost Child " .. i
+    local desc = "Teleport ke Jail Cellar " .. i
+    Window:AddButton(TeleportsTab, label, desc, "rbxassetid://16932740082", function()
         local part = getLostChildPart(i)
         if part then
             teleportPlayerTo(part.Position)
-            WindUI:Notify("Teleport", "Lost Child "..i, "Berhasil!", 2)
+            Window:Notify({Title="Teleport", Description="Lost Child "..i, Content="Berhasil!", Color=Color3.fromRGB(0,200,255), Delay=2})
         else
-            WindUI:Notify("Error", "Lost Child "..i.." tidak ditemukan", "Cek apakah lokasi ada", 2)
+            Window:Notify({Title="Error", Description="Lost Child "..i.." tidak ditemukan", Content="Cek apakah lokasi ada", Color=Color3.fromRGB(255,0,0), Delay=2})
         end
     end)
 end
@@ -394,10 +404,7 @@ end
 -- ==========================================
 -- AURA TAB (KILL AURA)
 -- ==========================================
-local CombatTab = Window:CreateTab("Aura")
-
-CombatTab:CreateParagraph("Combat", "Kill Aura (Damage Spoofing)")
-
+Window:AddParagraph(CombatTab, "Combat", "Kill Aura (Damage Spoofing)")
 local killAuraEnabled = false
 local auraRadius = 350 
 local toolPriority = {"Chainsaw", "Strong Axe", "Good Axe", "Spear", "Old Axe"}
@@ -416,34 +423,42 @@ local function getBestSpoofTool()
     return nil, nil
 end
 
-CombatTab:CreateToggle("Kill Aura", "Serang mobs di sekitar", function(state) killAuraEnabled = state end)
-CombatTab:CreateSlider("Radius", "Jangkauan serangan", 0, 500, 350, function(value) auraRadius = value end)
+Window:AddToggle(CombatTab, "Kill Aura", "Serang mobs di sekitar", false, function(state) killAuraEnabled = state end, "KillAura")
+Window:AddInput(CombatTab, "Radius", "Jangkauan serangan", "350", function(value)
+    local num = tonumber(value)
+    if num then auraRadius = num end
+end, "AuraRadius")
 
 -- ==========================================
 -- TREE AURA TAB
 -- ==========================================
-local TreeTab = Window:CreateTab("Tree Aura")
-
-TreeTab:CreateParagraph("Tree Aura", "Nebang pohon di sekitar")
+Window:AddParagraph(TreeTab, "Tree Aura", "Nebang pohon di sekitar")
 
 local treeAuraEnabled = false
 local treeAuraRadius = 80
 
-TreeTab:CreateToggle("Tree Aura", "Aktifkan / Nonaktifkan", function(state)
+Window:AddToggle(TreeTab, "Tree Aura", "Aktifkan / Nonaktifkan", false, function(state)
     treeAuraEnabled = state
     if state then
-        WindUI:Notify("Tree Aura", "ON", "Multi-target aktif! Radius: " .. treeAuraRadius, 2)
+        Window:Notify({Title = "Tree Aura", Description = "ON", Content = "Multi-target aktif! Radius: " .. treeAuraRadius, Color = Color3.fromRGB(0,200,0), Delay = 2})
     else
-        WindUI:Notify("Tree Aura", "OFF", "Dinonaktifkan", 2)
+        Window:Notify({Title = "Tree Aura", Description = "OFF", Content = "Dinonaktifkan", Color = Color3.fromRGB(200,0,0), Delay = 2})
     end
-end)
+end, "TreeAura")
 
-TreeTab:CreateSlider("Radius", "Jarak tebang pohon", 0, 200, 80, function(value) treeAuraRadius = value end)
+Window:AddInput(TreeTab, "Radius", "Jarak tebang pohon", "80", function(value)
+    local num = tonumber(value)
+    if num and num > 0 then
+        treeAuraRadius = num
+    else
+        Window:Notify({Title = "Error", Description = "Masukkan angka yang valid!", Content = "Radius tidak berubah", Color = Color3.fromRGB(255,0,0), Delay = 2})
+    end
+end, "TreeRadius")
 
-TreeTab:CreateButton("Test Chop All", "Tebang SEMUA pohon dalam radius (1x)", function()
+Window:AddButton(TreeTab, "Test Chop All", "Tebang SEMUA pohon dalam radius (1x)", "rbxassetid://16932740082", function()
     local trees = TreeUtility:GetTreesInRadius(treeAuraRadius)
     if #trees == 0 then
-        WindUI:Notify("Info", "Tidak ada pohon dalam radius", "Radius: " .. treeAuraRadius, 2)
+        Window:Notify({Title = "Info", Description = "Tidak ada pohon dalam radius", Content = "Radius: " .. treeAuraRadius, Color = Color3.fromRGB(255,170,0), Delay = 2})
         return
     end
 
@@ -456,15 +471,13 @@ TreeTab:CreateButton("Test Chop All", "Tebang SEMUA pohon dalam radius (1x)", fu
         task.wait(0.05)
     end
 
-    WindUI:Notify("Chop All", "Sukses!", "Menebang " .. chopped .. " pohon", 2)
+    Window:Notify({Title = "Chop All", Description = "Sukses!", Content = "Menebang " .. chopped .. " pohon", Color = Color3.fromRGB(0,200,255), Delay = 2})
 end)
 
 -- ==========================================
 -- ITEM TP TAB
 -- ==========================================
-local ItemTPTab = Window:CreateTab("Item TP")
-
-ItemTPTab:CreateParagraph("Item TP", "Tarik item ke karakter dengan stabil")
+Window:AddParagraph(ItemTPTab, "Item TP", "Tarik item ke karakter dengan stabil")
 
 local itemCategories = {
     Food_Consumables = {"Berry", "Carrot", "Cake", "Apple", "Steak", "Morsel", "Cooked Steak", "Cooked Morsel", "Pumpkin", "Ribs"},
@@ -479,8 +492,8 @@ local selectedItems = {}
 
 for catName, listItems in pairs(itemCategories) do
     selectedItems[catName] = listItems[1]
-    ItemTPTab:CreateDropdown(catName:gsub("_", " "), "Pilih item", listItems, function(value) selectedItems[catName] = value end)
-    ItemTPTab:CreateButton("Bring " .. catName:gsub("_", " "), "Tarik semua item", function()
+    Window:AddDropdown(ItemTPTab, catName:gsub("_", " "), "Pilih item", listItems, false, listItems[1], function(value) selectedItems[catName] = value end, "TP_" .. catName)
+    Window:AddButton(ItemTPTab, "Bring " .. catName:gsub("_", " "), "Tarik semua item", "rbxassetid://16932740082", function()
         local hrp = getRootPart()
         if not hrp then return end
         local selected = selectedItems[catName]
@@ -499,20 +512,18 @@ for catName, listItems in pairs(itemCategories) do
             local tpPos = basePos + Vector3.new((i-1) % 3 * 1.5, math.floor((i-1) / 3) * 1.5, 0)
             task.spawn(function() reliableDragItemToPos(data.item, tpPos) end)
         end
-        WindUI:Notify("Item TP", "Tarik "..#toProcess.."x "..selected, "", 2)
+        Window:Notify({Title="Item TP", Description="Tarik "..#toProcess.."x "..selected, Color=Color3.fromRGB(0,200,255), Delay=2})
     end)
-    ItemTPTab:CreateDivider()
+    Window:AddDivider(ItemTPTab, "")
 end
 
 -- ==========================================
 -- MISC TAB
 -- ==========================================
-local MiscTab = Window:CreateTab("Misc")
-
-MiscTab:CreateParagraph("Miscellaneous", "Fitur Tambahan & Optimasi")
+Window:AddParagraph(MiscTab, "Miscellaneous", "Fitur Tambahan & Optimasi")
 
 local fullbrightConn = nil
-MiscTab:CreateToggle("Fullbright", "Membuat seluruh map menjadi terang benderang", function(state)
+Window:AddToggle(MiscTab, "Fullbright", "Membuat seluruh map menjadi terang benderang", false, function(state)
     if state then
         Lighting.Brightness = 2
         Lighting.ClockTime = 14
@@ -532,9 +543,9 @@ MiscTab:CreateToggle("Fullbright", "Membuat seluruh map menjadi terang benderang
         Lighting.ClockTime = 12
         Lighting.GlobalShadows = true
     end
-end)
+end, "FullbrightToggle")
 
-MiscTab:CreateButton("Reduce Map (Potato Mode)", "Hapus tekstur, part kecil & efek berat untuk boost FPS", function()
+Window:AddButton(MiscTab, "Reduce Map (Potato Mode)", "Hapus tekstur, part kecil & efek berat untuk boost FPS", "rbxassetid://16932740082", function()
     pcall(function()
         for _, obj in ipairs(Workspace:GetDescendants()) do
             if obj:IsA("BasePart") then
@@ -561,19 +572,7 @@ MiscTab:CreateButton("Reduce Map (Potato Mode)", "Hapus tekstur, part kecil & ef
         Lighting.GlobalShadows = false
         Lighting.FogEnd = 999999
         
-        WindUI:Notify("Success", "Potato Mode", "Map di-optimize! FPS meningkat drastis.", 3)
-    end)
-end)
-
--- ==========================================
--- DISCORD BUTTON
--- ==========================================
-MiscTab:CreateDivider()
-MiscTab:CreateParagraph("Social", "Join komunitas kami!")
-MiscTab:CreateButton("Join Discord", "Klik untuk bergabung ke Discord server", function()
-    pcall(function()
-        setclipboard(DISCORD_LINK)
-        WindUI:Notify("Discord", "Link Discord disalin!", "https://discord.gg/Vzbs245EC", 3)
+        Window:Notify({Title = "Success", Description = "Potato Mode", Content = "Map di-optimize! FPS meningkat drastis.", Color = Color3.fromRGB(0, 200, 0), Delay = 3})
     end)
 end)
 
@@ -589,9 +588,21 @@ local function checkTime()
         return
     end
     if isNight and not wasNight then
-        WindUI:Notify("🌙 Night Time", "Hari telah berubah menjadi malam, hati hati dengan mob!", "Jam: " .. string.format("%.1f", currentTime), 4)
+        Window:Notify({
+            Title = "🌙 Night Time",
+            Description = "Hari telah berubah menjadi malam,hati hati dengan mob!",
+            Content = string.format("Jam: %.1f", currentTime),
+            Color = Color3.fromRGB(20, 20, 80),
+            Delay = 4
+        })
     elseif not isNight and wasNight then
-        WindUI:Notify("☀️ Day Time", "Hari telah berubah menjadi siang!", "Jam: " .. string.format("%.1f", currentTime), 4)
+        Window:Notify({
+            Title = "☀️ Day Time",
+            Description = "Hari telah berubah menjadi siang!",
+            Content = string.format("Jam: %.1f", currentTime),
+            Color = Color3.fromRGB(200, 180, 50),
+            Delay = 4
+        })
     end
     wasNight = isNight
 end
@@ -635,17 +646,14 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-MiscTab:CreateToggle("FPS & Ping Counter", "Tampilkan indikator FPS & Ping di layar", function(state)
+Window:AddToggle(MiscTab, "FPS & Ping Counter", "Tampilkan indikator FPS & Ping di layar", false, function(state)
     fpsPingGui.Enabled = state
-end)
+end, "FpsPingToggle")
 
 -- ==========================================
 -- VISUALS TAB (ESP Mobs & Items + Tree ESP)
 -- ==========================================
-local VisualsTab = Window:CreateTab("Visuals")
-
-VisualsTab:CreateParagraph("ESP", "Deteksi lokasi visual")
-
+Window:AddParagraph(VisualsTab, "ESP", "Deteksi lokasi visual")
 local espMobsEnabled, espItemsEnabled = false, false
 local espFolder = Instance.new("Folder")
 espFolder.Name = "BlueHaven_ESP"
@@ -682,9 +690,11 @@ local function refreshESP()
     end
 end
 
-VisualsTab:CreateToggle("ESP Mobs", "Tampilkan lokasi mobs", function(state) espMobsEnabled = state; refreshESP() end)
-VisualsTab:CreateToggle("ESP Items", "Tampilkan lokasi items", function(state) espItemsEnabled = state; refreshESP() end)
-VisualsTab:CreateToggle("ESP Trees", "Tampilkan HP pohon", function(state)
+Window:AddToggle(VisualsTab, "ESP Mobs", "Tampilkan lokasi mobs", false, function(state) espMobsEnabled = state; refreshESP() end, "ESPMobs")
+Window:AddToggle(VisualsTab, "ESP Items", "Tampilkan lokasi items", false, function(state) espItemsEnabled = state; refreshESP() end, "ESPItems")
+
+-- Tree ESP (tambahan)
+Window:AddToggle(VisualsTab, "ESP Trees", "Tampilkan HP pohon", false, function(state)
     treeESPEnabled = state
     if state then
         refreshTreeESP()
@@ -694,23 +704,19 @@ VisualsTab:CreateToggle("ESP Trees", "Tampilkan HP pohon", function(state)
         end
         treeESPList = {}
     end
-end)
+end, "ESPTrees")
 
 -- ==========================================
 -- PLAYER TAB
 -- ==========================================
-local PlayerTab = Window:CreateTab("Player")
-
-PlayerTab:CreateParagraph("Stats", "Modifikasi Karakter")
-
-PlayerTab:CreateSlider("WalkSpeed", "Kecepatan berjalan", 0, 200, 16, function(value)
+Window:AddParagraph(PlayerTab, "Stats", "Modifikasi Karakter")
+Window:AddSlider(PlayerTab, "WalkSpeed", "Kecepatan berjalan", 0, 200, 16, function(value)
     local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
     if hum then hum.WalkSpeed = value end
-end)
+end, "WalkSpeed", true)
 
 local infiniteJumpEnabled = false
-PlayerTab:CreateToggle("Infinite Jump", "Lompat tanpa batas di udara", function(state) infiniteJumpEnabled = state end)
-
+Window:AddToggle(PlayerTab, "Infinite Jump", "Lompat tanpa batas di udara", false, function(state) infiniteJumpEnabled = state end, "InfJump")
 UserInputService.JumpRequest:Connect(function()
     if infiniteJumpEnabled then
         local char = LocalPlayer.Character
@@ -722,7 +728,7 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 -- ==========================================
--- KILL AURA BACKGROUND LOOP
+-- KILL AURA BACKGROUND LOOP (TIDAK DIUBAH)
 -- ==========================================
 task.spawn(function()
     while ScriptRunning do
@@ -759,7 +765,7 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- TREE AURA BACKGROUND LOOP
+-- TREE AURA BACKGROUND LOOP (BARU)
 -- ==========================================
 task.spawn(function()
     while true do
@@ -821,12 +827,12 @@ task.spawn(function()
 end)
 
 -- ==========================================
--- AUTO EAT LOOP
+-- AUTO EAT LOOP (IMPROVED)
 -- ==========================================
-local autoEatHPThreshold = 70
-MainTab:CreateSlider("Eat HP Threshold", "Makan saat HP di bawah %", 10, 95, 70, function(value)
-    autoEatHPThreshold = value
-end)
+local autoEatHPThreshold = 70 -- persen
+Window:AddSlider(MainTab, "Eat HP Threshold", "Makan saat HP di bawah %", 10, 95, 70, function(v)
+    autoEatHPThreshold = v
+end, "EatThreshold")
 
 task.spawn(function()
     while ScriptRunning do
@@ -893,13 +899,25 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F5 then
         treeAuraEnabled = not treeAuraEnabled
-        WindUI:Notify("Tree Aura", treeAuraEnabled and "ON" or "OFF", "Press F5 again to toggle", 2)
+        Window:Notify({
+            Title = "Tree Aura",
+            Description = treeAuraEnabled and "ON" or "OFF",
+            Content = "Press F5 again to toggle",
+            Color = treeAuraEnabled and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0),
+            Delay = 2
+        })
     end
 end)
 
 -- ==========================================
 -- NOTIFICATION LOADED
 -- ==========================================
-WindUI:Notify("BlueHavenHub", "Loaded", "v5.32: Kill Aura + Tree Aura + Lost Child 1-4 siap!", 5)
+Window:Notify({ 
+    Title = "BlueHavenHub", 
+    Description = "Loaded", 
+    Content = "v5.32: Kill Aura + Tree Aura + Lost Child 1-4", 
+    Color = Color3.fromRGB(10, 30, 60), 
+    Delay = 5 
+})
 
 print("✅ BlueHavenHub v5.32 loaded – Kill Aura + Tree Aura + Lost Child 1-4 siap!")
